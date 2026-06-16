@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hazavao — Traducteur</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="card">
+    <p class="eyebrow">Teny ho teny</p>
+    <h1>Hazav<span>ao.</span></h1>
+    <p class="subtitle">Soraty ny teninao eto ambany, dia hazavaina avy hatrany. Un mot, une phrase — la traduction se révèle, claire.</p>
+
+    <form id="form-hazavao">
+        <label for="teny">Soratra</label>
+        <div class="field-wrap">
+            <textarea id="teny" name="teny" placeholder="Sorato eto ny teny…" maxlength="2000" required></textarea>
+            <span class="char-count" id="char-count">0 / 2000</span>
+        </div>
+
+        <div class="actions">
+            <span class="hint">Mety <kbd>⌘</kbd>+<kbd>Enter</kbd> na <kbd>Ctrl</kbd>+<kbd>Enter</kbd></span>
+            <button type="submit" id="submit-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3m9-9h-3M6 12H3m15.36-6.36-2.12 2.12M8.76 15.24l-2.12 2.12m12.72 0-2.12-2.12M8.76 8.76 6.64 6.64"/></svg>
+                <span id="btn-label">Hazavao</span>
+            </button>
+        </div>
+    </form>
+
+    <div class="error" id="error-box"></div>
+
+    <div class="divider"><span>vokatra</span></div>
+
+    <div class="result empty" id="result">
+        <div id="result-placeholder">Eto no hiposahan'ny fandikana…</div>
+        <div class="result-text" id="result-text"></div>
+        <button class="copy-btn" id="copy-btn" type="button">Adika</button>
+    </div>
+
+    <footer>Hazavao · API alimentée par ChatGPT</footer>
+</div>
+
+<script>
+    const form = document.getElementById('form-hazavao');
+    const textarea = document.getElementById('teny');
+    const charCount = document.getElementById('char-count');
+    const submitBtn = document.getElementById('submit-btn');
+    const btnLabel = document.getElementById('btn-label');
+    const resultBox = document.getElementById('result');
+    const resultText = document.getElementById('result-text');
+    const resultPlaceholder = document.getElementById('result-placeholder');
+    const errorBox = document.getElementById('error-box');
+    const copyBtn = document.getElementById('copy-btn');
+
+    textarea.addEventListener('input', () => {
+        charCount.textContent = `${textarea.value.length} / 2000`;
+    });
+
+    textarea.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+            form.requestSubmit();
+        }
+    });
+
+    async function translate() {
+        const teny = textarea.value.trim();
+        errorBox.classList.remove('show');
+
+        if (!teny) {
+            errorBox.textContent = "Asio teny aloha vao hazavaina.";
+            errorBox.classList.add('show');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.classList.add('loading');
+        btnLabel.textContent = 'Eo am-pikarakarana…';
+
+        try {
+            const url = '/hazavao?teny=' + encodeURIComponent(teny);
+            const response = await fetch(url, { method: 'GET' });
+
+            if (!response.ok) {
+                throw new Error('Nisy olana teo amin\'ny serveur (' + response.status + ')');
+            }
+
+            const translated = await response.text();
+            resultText.textContent = translated;
+            resultBox.classList.add('has-text');
+            resultBox.classList.remove('empty');
+        } catch (err) {
+            errorBox.textContent = "Tsy nahomby ny fandikana: " + err.message;
+            errorBox.classList.add('show');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('loading');
+            btnLabel.textContent = 'Hazavao';
+        }
+    }
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        translate();
+    });
+
+    copyBtn.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(resultText.textContent);
+        copyBtn.textContent = 'Voadika ✓';
+        setTimeout(() => { copyBtn.textContent = 'Adika'; }, 1500);
+    });
+</script>
+</body>
+</html>

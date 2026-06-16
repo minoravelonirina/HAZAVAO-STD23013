@@ -8,12 +8,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HazavaoController {
 
-    ChatGPTTranslator chatGPTTranslator = new ChatGPTTranslator();
+  ChatGPTTranslator chatGPTTranslator = new ChatGPTTranslator();
 
-    @GetMapping("/hazavao")
-    public String hazavao(@RequestParam("teny") String teny) throws Exception {
-        return chatGPTTranslator.translate(teny);
-    }
-
+  @GetMapping("/hazavao")
+  public String hazavao(@RequestParam("teny") String teny) throws Exception {
+    return chatGPTTranslator.translate(teny);
+  }
 }
-
